@@ -214,17 +214,81 @@ def big_shoe_rebounds
 end
 
 def most_points_scored
-  
+  points_hash ={}
+  game_hash.each do |place, team|
+    team.each do |attribute, data|
+      if attribute == :players
+        data.each do |player|
+          #binding.pry
+          points_hash[player[:player_name]] = player[:points]
+        end
+      end
+    end
+  end
+  points_hash.max_by {|k, v| v}[0]
 end
 
 def winning_team
-  
+  away = []
+  home = []
+  game_hash.each do |place , team|
+    if place == :away
+      team.each do |attribute, data|
+        if attribute == :players
+          data.each do |player|
+            away.push(player[:points])
+          end
+        end
+      end
+    elsif place == :home
+      team.each do |attribute, data|
+        if attribute == :players
+          data.each do |player|
+            home.push(player[:points])
+          end
+        end
+      end
+    end
+  end
+  if away.reduce {|a, b| a + b} > home.reduce {|c, d| c + d}
+    return game_hash[:away][:team_name]
+  else
+    return game_hash[:home][:team_name]
+  end
 end
 
 def player_with_longest_name
-  
+  player_l_n = []
+  game_hash.each do |place, team|
+    team.each do |attribute, data|
+      if attribute == :players
+        data.each do |players|
+          players.each do |pdata, pvalue|
+            if pdata == :player_name
+              player_l_n.push(pvalue)
+            end
+          end
+        end
+      end
+    end
+  end
+  player_l_n.max_by(&:length)
 end
 
-def long_name_steals_a_ton
-  
+def long_name_steals_a_ton?
+  player_steals = {}
+  game_hash.each do |place, team|
+    team.each do |attribute, data|
+      if attribute == :players
+        data.each do |player|
+          player_steals[player[:player_name]] = player[:steals] 
+        end
+      end
+    end
+  end
+  if player_steals.max_by{|name, steals| steals}[0] == player_with_longest_name
+    return true
+  else
+    return false
+  end
 end
