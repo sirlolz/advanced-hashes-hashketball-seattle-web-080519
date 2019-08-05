@@ -1,5 +1,4 @@
 require "pry"
-
 def game_hash
 hasketball = {
   :home => {
@@ -117,37 +116,20 @@ hasketball = {
 }
 end
 
+def get_players
+  players = []
+  game_hash.each do |teams, team_data|
+    players << team_data[:players]
+  end
+  players.flatten
+end
+
 def num_points_scored(players_name)
-  #returns specified players points
-  game_hash.each do |place, team|
-    team.each do |attribute, data|
-      if attribute == :players
-        data.each do |player|
-          if player[:player_name] == players_name 
-          #  binding.pry
-           return player[:points]
-          end
-        end
-      end
-    end
-  end
+  get_players.find {|players| players[:player_name] == players_name}[:points]
 end
-
 def shoe_size(players_name)
-  game_hash.each do |place, team|
-    team.each do |attribute, data|
-      if attribute == :players
-        data.each do |player|
-          if player[:player_name] == players_name 
-          #  binding.pry
-           return player[:shoe]
-          end
-        end
-      end
-    end
-  end
+  return player_stats(players_name)[:shoe]
 end
-
 def team_colors(teamname)
   game_hash.each do |place, team|
     if team[:team_name] == teamname
@@ -155,7 +137,6 @@ def team_colors(teamname)
     end
   end
 end
-
 def team_names
   team_array = []
   game_hash.each do |place, team|
@@ -163,7 +144,6 @@ def team_names
   end
   return team_array
 end
-
 def player_numbers(team_name)
   jersey = []
   game_hash.map do |place, team|
@@ -179,28 +159,25 @@ def player_numbers(team_name)
   end
   return jersey
 end
-
-def player_stats(player)
+def player_stats(player_name)
   stats = {}
   game_hash.each do |place, team|
-    team.each do |attributes, data|
-      if attributes == :players
-        data.each do |players|
-          if players[:player_name] == player
-            stats = players.delete_if do |k, v|
-              k == :player_name
-            end
+    team.each do |attribute, data|
+      if attribute == :players
+        data.map do |player|
+          if player[:player_name] == player_name
+            stats = player
           end
         end
       end
     end
   end
-  return stats
+ # binding.pry
+  return stats.delete_if {|k,v| k == :player_name}
 end
-
 def big_shoe_rebounds
   shoe_hash = {}
-  game_hash.each do |place, team|
+    game_hash.each do |place, team|
     team.each do |attribute, data|
       if attribute == :players
         data.each do |player|
@@ -212,7 +189,6 @@ def big_shoe_rebounds
   end
   shoe_hash.max_by {|k, v| k}[1]
 end
-
 def most_points_scored
   points_hash ={}
   game_hash.each do |place, team|
@@ -228,35 +204,36 @@ def most_points_scored
   points_hash.max_by {|k, v| v}[0]
 end
 
+def team_points(team)
+  arr = []  
+	team.each do |attribute, data|
+		if attribute == :players
+			data.each do |player|
+				arr.push(player[:points])
+			end
+		end
+	end
+	arr
+end
+
 def winning_team
-  away = []
   home = []
+  away = []
   game_hash.each do |place , team|
     if place == :away
-      team.each do |attribute, data|
-        if attribute == :players
-          data.each do |player|
-            away.push(player[:points])
-          end
-        end
-      end
+      away = team_points(team)
+     # binding.pry
     elsif place == :home
-      team.each do |attribute, data|
-        if attribute == :players
-          data.each do |player|
-            home.push(player[:points])
-          end
-        end
-      end
+      home = team_points(team)
     end
   end
-  if away.reduce {|a, b| a + b} > home.reduce {|c, d| c + d}
+ # binding.pry
+  if away.reduce(:+) > home.reduce(:+)
     return game_hash[:away][:team_name]
   else
     return game_hash[:home][:team_name]
   end
 end
-
 def player_with_longest_name
   player_l_n = []
   game_hash.each do |place, team|
